@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>大事件-后台登录页</title>
+    <link rel="stylesheet" type="text/css" href="js/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/iconfont.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+
 </head>
 
 <body>
@@ -28,9 +30,71 @@
                 <input type="submit" class="input_sub" value="登 录">
             </form>
         </div>
+    </div>
 
-    </div> 
+    <!-- 模态框 -->
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+        Launch demo modal
+    </button>
 
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">提示窗</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <!-- <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="js/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            //登录按钮
+            $('.input_sub').click(function (e) {
+                e.preventDefault();
+                var username = $('.input_txt').val().trim();
+                var password = $('.input_pass').val().trim();
+                //判断输入框是否为空，为空则提示错误
+                if (username == '' || password == '') {
+                    // alert('用户名或密码不能为空！');
+                    $('.modal-body').html('用户名或密码不能为空！');
+                    $('#myModal').modal();
+                    return;
+                };
+                //获取用户信息，判断输入用户名和密码是否正确
+                $.ajax({
+                    url: 'http://localhost:8000/admin/login',
+                    type: 'post',
+                    data: {
+                        user_name: username,
+                        password: password,
+                    },
+                    success: function (res) {
+                        //如果用户名和密码匹配，则跳转到首页,否则提示错误框
+                        if (res.code == 200) {
+                            location.href = './index.html';
+                        } else if (res.code == 400) {
+                            $('.modal-body').html(res.msg);
+                            $('#myModal').modal();
+                        }
+                    }
+                })
+            })
+        })
+
+    </script>
 </body>
 
 </html>
