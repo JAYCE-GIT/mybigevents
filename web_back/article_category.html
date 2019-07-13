@@ -135,8 +135,7 @@
         <td>{{$value.name}}</td>
         <td>{{$value.slug}}</td>
         <td class="text-center">
-            <a href="javascript:editTr({&quot;id&quot;:&quot;1&quot;,&quot;slug&quot;:&quot;uncategorized&quot;,&quot;name&quot;:&quot;未分类&quot;});"
-                class="btn btn-info btn-xs">编辑</a>
+            <a href="javascript:void(0);" class="btn btn-info btn-xs">编辑</a>
             <a href="javascript:void(0);" delID="{{$value.id}}" class="btn btn-danger btn-xs">删除</a>
         </td>
     </tr>
@@ -144,77 +143,110 @@
     </script>
     <script>
         $(function () {
-
-
             //一进入页面就发起ajax请求获取文章的类别
-            $.ajax({
-                url: 'http://localhost:8000/admin/category_search',
-                success: function (res) {
-                    console.log(res);
-                    if (res.code == 200) {
-                        //调用模板，将ajax请求返回的值里的数据data数组传入temp_tr模板。
-                        //并赋给变量html
-                        var html = template("temp_tr", res.data);
-                        //将获取到的文章类别直接覆盖到tbody里面
-                        $('tbody').html(html);
-                        $('.btn-danger').attr('delID');
-                        //给删除按钮添加点击事件，实现删除功能
-                        $('.btn-danger').click(function (e) {
-                            //阻止默认事件触发
-                            e.preventDefault();
-                            //获取模板内添加的delID行内样式的id
-                            var id = $(this).attr('delID');
-                            //将删除按钮的js对象保存到that里
-                            var that = $(this);
-                            $.ajax({
-                                url: "http://localhost:8000/admin/category_delete",
-                                type: 'post',
-                                data: { id: id },
-                                success: function (res) {
-                                    if (res.code == 200) {
-                                        //通过前面保存的删除按钮js对象，找到他的tr父元素，删除。
-                                        that.parents('tr').remove();
-                                    }
-                                }
+            function newdata() {
+                $.ajax({
+                    url: 'http://localhost:8000/admin/category_search',
+                    success: function (res) {
+                        console.log(res);
+                        if (res.code == 200) {
+                            //调用模板，将ajax请求返回的值里的数据data数组传入temp_tr模板。
+                            //并赋给变量html
+                            var html = template("temp_tr", res.data);
+                            //将获取到的文章类别直接覆盖到tbody里面
+                            $('tbody').html(html);
+                            $('.btn-danger').attr('delID');
+                            //点击修改按钮将bootstrap模态框内的提交按钮改为修改
+                            $('.btn-info').click(function () {
+                                $('#model_add').text('修改');
+                                //并给提交按钮一个自定义属性存修改的数据id
+                                $('#model_add').attr('data_ID', $(this).siblings().attr('delID'))
                             })
-                        })
+                            //给删除按钮添加点击事件，实现删除功能
+                            $('.btn-danger').click(function (e) {
+                                //阻止默认事件触发
+                                e.preventDefault();
+                                //获取模板内添加的delID行内样式的id
+                                var id = $(this).attr('delID');
+                                //将删除按钮的js对象保存到that里
+                                var that = $(this);
+                                $.ajax({
+                                    url: "http://localhost:8000/admin/category_delete",
+                                    type: 'post',
+                                    data: { id: id },
+                                    success: function (res) {
+                                        if (res.code == 200) {
+                                            //通过前面保存的删除按钮js对象，找到他的tr父元素，删除。
+                                            that.parents('tr').remove();
+                                        }
+                                    }
+                                })
+                            })
+                        }
                     }
-                }
+                })
+            }
+            newdata();
+            //点击新增分类按钮将bootstrap模态框内的提交按钮改为新增
+            $('.btn-success').click(function () {
+                $('#model_add').text('新增');
             })
             //给bootstrap模态框内的新增按钮添加点击事件
             $('#model_add').click(function () {
                 //获取bootstrap模态框内文本框输入的文本
                 var $catename = $('#cate-name').val();
                 var $cateslug = $('#cate-slug').val();
-                //发起ajax请求，在文章类别里面新增数据
-                $.ajax({
-                    url: 'http://localhost:8000/admin/category_add',
-                    type: 'post',
-                    data: {
-                        //将刚才在bootstrap里面获取的文本传入ajax请求参数
-                        name: $catename,
-                        slug: $cateslug
-                    },
-                    success: function (res) {
-                        if (res.code == 200) {
-                            //创建数组
-                            //数组内放一个对象
-                            //对象里拥有两个属性，分别是name和slug
-                            //对应着传入的$catename和$cateslug
-                            var arr = [
-                                {
-                                    name: $catename,
-                                    slug: $cateslug
-                                }
-                            ];
-                            //调用模板temp_tr，将数组传入模板
-                            //并赋给变量html
-                            var html = template('temp_tr', arr);
-                            //在tbody内容的最后面添加新增的文章类别
-                            $('tbody').append(html);
+                //获取新添加的自定义属性
+                var $changeID = $(this).attr('data_ID');
+                //判断如果提交按钮为新增，则执行以下代码
+                if ($('#model_add').text() == '新增') {
+                    //发起ajax请求，在文章类别里面新增数据
+                    $.ajax({
+                        url: 'http://localhost:8000/admin/category_add',
+                        type: 'post',
+                        data: {
+                            //将刚才在bootstrap里面获取的文本传入ajax请求参数
+                            name: $catename,
+                            slug: $cateslug
+                        },
+                        success: function (res) {
+                            if (res.code == 200) {
+                                //创建数组
+                                //数组内放一个对象
+                                //对象里拥有两个属性，分别是name和slug
+                                //对应着传入的$catename和$cateslug
+                                var arr = [
+                                    {
+                                        name: $catename,
+                                        slug: $cateslug
+                                    }
+                                ];
+                                //调用模板temp_tr，将数组传入模板
+                                //并赋给变量html
+                                var html = template('temp_tr', arr);
+                                //在tbody内容的最后面添加新增的文章类别
+                                $('tbody').append(html);
+                            }
                         }
-                    }
-                })
+                    })
+                    //如果提交按钮为修改，则执行以下代码
+                } else if ($('#model_add').text() == '修改') {
+                    $.ajax({
+                        url: 'http://localhost:8000/admin/category_edit',
+                        type: 'post',
+                        data: {
+                            id: $changeID,
+                            name: $catename,
+                            slug: $cateslug
+                        },
+                        success: function (res) {
+                            if (res.code == 200) {
+                                console.log(res.msg);
+                                newdata();
+                            }
+                        }
+                    })
+                }
                 //新增事件处理完毕后关闭bootstrap模态框
                 $('#addModal').modal('hide');
             })
