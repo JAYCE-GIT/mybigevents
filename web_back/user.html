@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="js/bootstrap/js/bootstrap.min.js"></script>
 
 </head>
 
@@ -24,38 +25,41 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">用户名称：</label>
                     <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="李思思">
+                        <input type="text" class="form-control username" name="username" value="李思思">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">昵称：</label>
                     <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="思思">
+                        <input type="text" class="form-control nickname" name="nickname" value="思思">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">邮箱：</label>
                     <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="lisisi@126.com">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
-                    <div class="col-sm-10">
-                        <img src="images/2.jpg" alt="" class="user_pic">
-                        <input type="file" id="exampleInputFile">
+                        <input type="text" class="form-control email" name="email" value="lisisi@126.com">
                     </div>
                 </div>
 
                 <div class="form-group">
-                        <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
-                        <div class="col-sm-4">
-                            <input type="password" class="form-control" id="inputEmail3" value="12345678">
-                        </div>
+                    <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
+                    <div class="col-sm-10">
+                        <img src="images/2.jpg" alt="" class="user_pic">
+                        <input type="file" id="exampleInputFile" name="user_pic" style="display: none">
+                        <br>
+                        <label for="exampleInputFile">
+                            <img src="images/uploadFileIcon.png" alt="">
+                        </label>
                     </div>
-               
-    
+                </div>
+                <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
+                    <div class="col-sm-4">
+                        <input type="password" class="form-control password" name="password" value="12345678">
+                    </div>
+                </div>
+
+
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
                         <button type="submit" class="btn btn-success">修改</button>
@@ -64,7 +68,108 @@
             </form>
         </div>
     </div>
+    <!-- Button trigger modal -->
+    <!-- <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+        Launch demo modal
+    </button> -->
 
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">提示窗口</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+                    <button type="button" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(function () {
+            //图片上传的预览功能
+            $('#exampleInputFile').change(function () {
+                var file = this.files[0];
+                var url = URL.createObjectURL(file);
+                $('.user_pic').attr('src', url);
+            })
+            //用户详细信息的获取，并传入相应的表单元素的val值和图
+            $.ajax({
+                url: 'http://localhost:8000/admin/userinfo_get',
+                success: function (res) {
+                    console.log(res);
+                    if (res.code == 200) {
+                        //for in循环获取到的详细信息
+                        for (var key in res.data) {
+                            //将相应的value值传入相应的input的value
+                            $('.' + key).val(res.data[key]);
+                        }
+                        //图片不是input，所以需要另外找到并修改
+                        $('.user_pic').attr('src',res.data.user_pic);
+                    }
+                }
+            })
+            //修改信息按钮的点击事件
+            $('.btn-success').click(function (e) {
+                //阻止默认跳转
+                e.preventDefault();
+                //创建formData对象, 使用formData要保证form表单里面获取值得标签有name属性
+                var formdata1 = new FormData($('.article_form')[0]);
+                //用户详细信息修改的接口
+                $.ajax({
+                    url: 'http://localhost:8000/admin/userinfo_edit',
+                    type: 'post',
+                    data: formdata1,
+                    contentType: false,//不要设置请求头
+                    processData: false,//不要把我这个formData转成key=value这种格式的字符串
+                    success: function (res) {
+                        console.log(res);
+                        //判断请求是否成功，成功200
+                        if (res.code == 200) {
+                            //bootstrap的提示框
+                            $('.modal-body').html('修改成功！');
+                            $('#myModal').modal();
+                            //bootstrap提示框的确定按钮事件
+                            $('.btn-primary').click(function () {
+                                //ajax请求修改后的基本信息
+                                $.ajax({
+                                    url: 'http://localhost:8000/admin/getuser',
+                                    success: function (res) {
+                                        //判断是否请求成功
+                                        if (res.code == 200) {
+                                            //将父窗口的昵称和图片更换
+                                            parent.$('.user_info').children('span').text(res.data.nickname);
+                                            parent.$('.user_info').children('img').attr('src', res.data.user_pic);
+                                            parent.$('.user_center_link').children('img').attr('src', res.data.user_pic);
+                                        }
+                                    }
+                                })
+                                //点击bootstrap提示框的确认按钮后，请求完毕即关闭提示框
+                                $('#myModal').modal('hide');
+                            })
+                            //详细信息修改失败则处理以下代码
+                        }else{
+                            $('.modal-body').html('修改失败！');
+                            $('#myModal').modal();
+                            $('.btn-primary').click(function () {
+                                $('#myModal').modal('hide');
+                            })
+                        }
+                    }
+                })
+            })
+        })
+
+    </script>
 </body>
 
 </html>
