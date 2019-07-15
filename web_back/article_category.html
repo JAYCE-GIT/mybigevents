@@ -119,7 +119,7 @@
 
         $('.category_table').delegate('a', 'click', function () {
             if ($(this).hasClass('btn-info')) {
-                $('#addModal .modal-title').html('修改分类名称');
+                // $('#addModal .modal-title').html('修改分类名称');
                 $('#addModal').modal('show');
             }
         })      
@@ -155,33 +155,6 @@
                             var html = template("temp_tr", res.data);
                             //将获取到的文章类别直接覆盖到tbody里面
                             $('tbody').html(html);
-                            $('.btn-danger').attr('delID');
-                            //点击修改按钮将bootstrap模态框内的提交按钮改为修改
-                            $('.btn-info').click(function () {
-                                $('#model_add').text('修改');
-                                //并给提交按钮一个自定义属性存修改的数据id
-                                $('#model_add').attr('data_ID', $(this).siblings().attr('delID'))
-                            })
-                            //给删除按钮添加点击事件，实现删除功能
-                            $('.btn-danger').click(function (e) {
-                                //阻止默认事件触发
-                                e.preventDefault();
-                                //获取模板内添加的delID行内样式的id
-                                var id = $(this).attr('delID');
-                                //将删除按钮的js对象保存到that里
-                                var that = $(this);
-                                $.ajax({
-                                    url: "http://localhost:8000/admin/category_delete",
-                                    type: 'post',
-                                    data: { id: id },
-                                    success: function (res) {
-                                        if (res.code == 200) {
-                                            //通过前面保存的删除按钮js对象，找到他的tr父元素，删除。
-                                            that.parents('tr').remove();
-                                        }
-                                    }
-                                })
-                            })
                         }
                     }
                 })
@@ -189,9 +162,26 @@
             newdata();
             //点击新增分类按钮将bootstrap模态框内的提交按钮改为新增
             $('.btn-success').click(function () {
-                $('#model_add').text('新增');
+                //修改模态框的功能名
+                $('.modal-title').text('新增分类');
+                //修改提交按钮为新增并删除绿色背景的样式
+                $('#model_add').text('新增').removeClass('btn-success');
+                //重置两个文本框
+                $('#cate-name').val('');
+                $('#cate-slug').val('');
             })
-            //给bootstrap模态框内的新增按钮添加点击事件
+            // //点击修改按钮将bootstrap模态框内的提交按钮改为修改
+            $('tbody').on('click', '.btn-info', (function () {
+                //修改模态框的功能名
+                $('.modal-title').text('修改分类');
+                //修改提交按钮为修改并增加绿色背景的样式，并给提交按钮一个自定义属性存修改的数据id
+                $('#model_add').text('修改').addClass('btn-success').attr('data_ID', $(this).siblings().attr('delID'));
+                // console.log($(this).parents('tr').children());
+                //将当前按钮对应的数据显示到bootstrap模态框内对应文本框
+                $('#cate-name').val($(this).parents('tr').children().eq(0).text());
+                $('#cate-slug').val($(this).parents('tr').children().eq(1).text());
+            }))
+            //给bootstrap模态框内的新增和修改按钮添加点击事件
             $('#model_add').click(function () {
                 //获取bootstrap模态框内文本框输入的文本
                 var $catename = $('#cate-name').val();
@@ -211,21 +201,18 @@
                         },
                         success: function (res) {
                             if (res.code == 200) {
+                                newdata();
+                                // console.log(res);
                                 //创建数组
                                 //数组内放一个对象
                                 //对象里拥有两个属性，分别是name和slug
                                 //对应着传入的$catename和$cateslug
-                                var arr = [
-                                    {
-                                        name: $catename,
-                                        slug: $cateslug
-                                    }
-                                ];
+                                // var arr = [{ name: $catename, slug: $cateslug, }];
                                 //调用模板temp_tr，将数组传入模板
                                 //并赋给变量html
-                                var html = template('temp_tr', arr);
+                                // var html = template('temp_tr',arr);
                                 //在tbody内容的最后面添加新增的文章类别
-                                $('tbody').append(html);
+                                // $('tbody').append(html);
                             }
                         }
                     })
@@ -241,7 +228,7 @@
                         },
                         success: function (res) {
                             if (res.code == 200) {
-                                console.log(res.msg);
+                                // console.log(res.msg);
                                 newdata();
                             }
                         }
@@ -250,8 +237,27 @@
                 //新增事件处理完毕后关闭bootstrap模态框
                 $('#addModal').modal('hide');
             })
-
-
+            //给删除按钮添加点击事件，实现删除功能
+            $('tbody').on('click', '.btn-danger', function (e) {
+                //阻止默认事件触发
+                e.preventDefault();
+                //获取模板内添加的delID行内样式的id
+                var id = $(this).attr('delID');
+                //将删除按钮的js对象保存到that里
+                var that = $(this);
+                console.log(this);
+                $.ajax({
+                    url: "http://localhost:8000/admin/category_delete",
+                    type: 'post',
+                    data: { id: id },
+                    success: function (res) {
+                        if (res.code == 200) {
+                            //通过前面保存的删除按钮js对象，找到他的tr父元素，删除。
+                            that.parents('tr').remove();
+                        }
+                    }
+                });
+            });
         })
     </script>
 </body>
