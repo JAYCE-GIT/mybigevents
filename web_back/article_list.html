@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.12.4.min.js"></script>
+    <!-- pagination分页插件是基于jQuery和bootstrap的 -->
+    <script src="js/bootstrap/js/bootstrap.min.js"></script>
+    <!-- 导入pagination分页插件 -->
+    <script src="js/jquery.twbsPagination.min.js"></script>
 </head>
 
 <body>
@@ -23,13 +27,16 @@
                 <div class="col-xs-6">
                     <form class="form-inline">
                         <select id="selCategory" name="" class="form-control input-sm">
-                            <option value="">所有分类</option>
+                            <!-- 页面调用getData函数的时候获取到的是text(),所以需要在所有分类这里加value="" -->
+                            <!-- 在这里我将调用getData函数放到ajax请求成功后执行的函数内，则省去上面这句 -->
+                            <option>所有分类</option>
                             <option>未分类</option>
                             <option>奇趣事</option>
                             <option>会生活</option>
                             <option>爱旅行</option>
                         </select>
                         <select id="selStatus" name="" class="form-control input-sm">
+                            <!-- 因为这个不是模板内容，所以不能省略，得加上value="" -->
                             <option value="">所有状态</option>
                             <option>草稿</option>
                             <option>已发布</option>
@@ -183,12 +190,30 @@
 
         </div>
     </div>
+    <!-- 导入模板js文件 -->
     <script src="js/template-web.js"></script>
-    <script type="text/html" id="sel_temp">
+    <!-- 创建模板，用于获取所有文章类别的文章类别下拉框 -->
+    <script type="text/html" id="art_cate">
         <option value="">所有分类</option>
         {{each}}
         <option value="{{$value.id}}">{{$value.name}}</option>
         {{/each}}
+    </script>
+    <!-- 创建模板，用于文章列表信息的显示的表格 -->
+    <script type="text/html" id="art_list">
+        {{each}}
+        <tr>
+                <td>{{$value.title}}</td>
+                <td>{{$value.author}}</td>
+                <td>{{$value.type}}</td>
+                <td class="text-center">{{$value.date}}</td>
+                <td class="text-center">{{$value.state}}</td>
+                <td class="text-center">
+                    <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+                    <a href="javascript:void(0)" data-id="{{$value.id}}" class="btn btn-danger btn-xs">删除</a>
+                </td>
+            </tr>
+            {{/each}}
     </script>
     <script>
         // 设置左侧菜单
@@ -196,18 +221,77 @@
             window.parent.setMenu(1, 1);
         })
         $(function () {
+
+            
+            //发送ajax请求，获取所有文章类别
             $.ajax({
                 url: 'http://localhost:8000/admin/category_search',
                 success: function (res) {
                     // console.log(res);
                     if (res.code == 200) {
-                        var html = template('sel_temp', res.data);
+                        //将获取到的文章类别传入模板
+                        var html = template('art_cate', res.data);
+                        //将模板生成的表格传入id为selCategory的下拉框
                         $('#selCategory').html(html);
+                        //文章类别下拉框获取到之后，立即调用getData函数将文章列表信息显示到表格内
+                        getData(1);
                     }
                 }
             })
-            
 
+
+            //设置getData函数，将文章列表信息显示到表格内
+            //设置mypage页数形参
+            function getData(mypage) {
+                //获取文章类别
+                var type = $('#selCategory').val();
+                //获取文章状态
+                var state = $('#selStatus').val();
+                //发送ajax请求，获取文章列表
+                $.ajax({
+                    url: 'http://localhost:8000/admin/search',
+                    data: {
+                        type: type,
+                        state: state,
+                        page: mypage
+                    },
+                    success: function (res) {
+                        // console.log(res);
+                        if (res.code == 200) {
+                            //获取到的文章列表传入模板
+                            var html = template('art_list', res.data);
+                            //将模板生成的表格传入tbody
+                            $('tbody').html(html);
+                        }
+                    }
+                })
+            }
+
+
+            //给筛选按钮添加点击事件
+            $('#btnSearch').on('click', function (e) {
+                //阻止默认事件
+                e.preventDefault();
+                //调用getData函数，将两个下拉框内容对应的文章列表显示
+                getData(1);
+            })
+
+
+            //pagination分页插件是基于jQuery和bootstrap的
+            //所以使用$找到pagination分页插件
+            //再使用pagination分页插件对应的的方法
+            $('.pagination').twbsPagination({
+                totalPages: 35,
+                visiblePages: 5,
+                first: '首页',
+                prev: '上一页',
+                next: '下一页',
+                last: '尾页',
+                onPageClick: function (event, page) {
+                    //getData函数记得设置形参，这样pagination分页插件才能传实参进去。
+                    getData(page);
+                }
+            });
         })
 
     </script>
