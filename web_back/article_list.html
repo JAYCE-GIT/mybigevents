@@ -135,7 +135,7 @@
                         //将模板生成的表格传入id为selCategory的下拉框
                         $('#selCategory').html(html);
                         //文章类别下拉框获取到之后，立即调用getData函数将文章列表信息显示到表格内
-                        getData(1);
+                        getData($('.pagination').twbsPagination('getCurrentPage'));
                     }
                 }
             })
@@ -193,22 +193,43 @@
             }
 
 
-
-
             //给筛选按钮添加点击事件
             $('#btnSearch').on('click', function (e) {
                 //阻止默认事件
                 e.preventDefault();
                 //调用getData函数，将两个下拉框内容对应的文章列表显示
 
-                getData(1);
+                getData($('.pagination').twbsPagination('getCurrentPage'));
+            })
+
+
+            //使用委托给删除按钮添加删除事件
+            $('tbody').on('click', '.btn-danger', function (e) {
+                //阻止默认事件触发
+                e.preventDefault();
+                var that = $(this);
+                //提醒用户是否要删除
+                if (confirm('你确定要删除吗？')) {
+                    $.ajax({
+                        url: 'http://localhost:8000/admin/article_delete',
+                        data: { id: that.attr('data-id') },
+                        success: function (res) {
+                            if (res.code == 200) {
+                                // console.log(res);
+                                alert(res.msg);
+                                //删除成功后重新获取数据,停留在原位置并将后面的数据往前提
+                                getData($('.pagination').twbsPagination('getCurrentPage'));
+                                // that.parents('tr').remove();
+                            }
+                        }
+                    })
+                }
             })
 
 
 
+
         })
-
-
     </script>
 </body>
 
