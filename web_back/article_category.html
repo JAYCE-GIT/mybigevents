@@ -245,18 +245,23 @@
                 var id = $(this).attr('delID');
                 //将删除按钮的js对象保存到that里
                 var that = $(this);
-                console.log(this);
-                $.ajax({
-                    url: "http://localhost:8000/admin/category_delete",
-                    type: 'post',
-                    data: { id: id },
-                    success: function (res) {
-                        if (res.code == 200) {
-                            //通过前面保存的删除按钮js对象，找到他的tr父元素，删除。
-                            that.parents('tr').remove();
+                // console.log(this);
+                if (confirm('你确定要删除吗？')) {
+                    $.ajax({
+                        url: "http://localhost:8000/admin/category_delete",
+                        type: 'post',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res.code == 200) {
+
+                                //通过前面保存的删除按钮js对象，找到他的tr父元素，删除。
+                                that.parents('tr').remove();
+                            }
                         }
-                    }
-                });
+                    });
+                }else{
+                    return;
+                }
             });
         })
     </script>
