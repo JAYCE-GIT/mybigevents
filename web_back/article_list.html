@@ -222,7 +222,7 @@
         })
         $(function () {
 
-            
+
             //发送ajax请求，获取所有文章类别
             $.ajax({
                 url: 'http://localhost:8000/admin/category_search',
@@ -240,6 +240,8 @@
             })
 
 
+            //设置默认页码
+            var defaultPage = 0;
             //设置getData函数，将文章列表信息显示到表格内
             //设置mypage页数形参
             function getData(mypage) {
@@ -253,7 +255,7 @@
                     data: {
                         type: type,
                         state: state,
-                        page: mypage
+                        page: mypage,
                     },
                     success: function (res) {
                         // console.log(res);
@@ -262,10 +264,34 @@
                             var html = template('art_list', res.data);
                             //将模板生成的表格传入tbody
                             $('tbody').html(html);
+                            //获取res返回的页数
+                            var totalPages = res.totalPage;
+                            if (defaultPage != totalPages) {
+                                defaultPage = totalPages;
+                                //pagination分页插件是基于jQuery和bootstrap的,所以使用$找到pagination分页插件
+                                //使用pagination分页插件动态页数功能
+                                $('.pagination').twbsPagination('destroy');
+                                //再使用pagination分页插件对应的的方法
+                                $('.pagination').twbsPagination({
+                                    totalPages: totalPages,
+                                    startPage: 1,
+                                    visiblePages: 5,
+                                    first: '首页',
+                                    prev: '上一页',
+                                    next: '下一页',
+                                    last: '尾页',
+                                    onPageClick: function (event, page) {
+                                        //形参page是当前页码，需要传给ajax请求内的page。
+                                        getData(page);
+                                    }
+                                });
+                            }
                         }
                     }
                 })
             }
+
+
 
 
             //给筛选按钮添加点击事件
@@ -273,26 +299,14 @@
                 //阻止默认事件
                 e.preventDefault();
                 //调用getData函数，将两个下拉框内容对应的文章列表显示
+                
                 getData(1);
             })
 
 
-            //pagination分页插件是基于jQuery和bootstrap的
-            //所以使用$找到pagination分页插件
-            //再使用pagination分页插件对应的的方法
-            $('.pagination').twbsPagination({
-                totalPages: 35,
-                visiblePages: 5,
-                first: '首页',
-                prev: '上一页',
-                next: '下一页',
-                last: '尾页',
-                onPageClick: function (event, page) {
-                    //getData函数记得设置形参，这样pagination分页插件才能传实参进去。
-                    getData(page);
-                }
-            });
+
         })
+
 
     </script>
 </body>
