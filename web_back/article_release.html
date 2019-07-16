@@ -15,6 +15,10 @@
     <script src="js/jedate/js/jedate.js"></script>
     <script src="js/tinymce/js/tinymce/tinymce.min.js"></script>
     <script src="js/tinymce/js/tinymce_setup.js"></script>
+    <!-- 导入模板js文件 -->
+    <script src="js/template-web.js"></script>
+    <!-- 导入时间戳转换js文件 -->
+    <script src="js/moment.js"></script>
 </head>
 
 <body>
@@ -27,19 +31,20 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章标题：</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="文章标题">
+                        <input type="email" name="title" class="form-control" id="inputEmail3" placeholder="文章标题">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
-                        <input type="file" id="exampleInputFile">
+                        <img src="images/2.jpg" style="height: 150px" alt=""><br>
+                        <input type="file" name="cover" id="exampleInputFile">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
+                        <select name="type" class="form-control art_rel">
                             <option>1</option>
                             <option>2</option>
                             <option>3</option>
@@ -53,7 +58,7 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="dateinput">
+                            <input type="text" name="date" class="form-control" placeholder="YYYY-MM-DD" id="dateinput">
                             <span class="input-group-btn">
                                 <button class="btn btn-default" type="button"
                                     onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
@@ -66,19 +71,77 @@
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
                         <textarea class="form-control" id="rich_content" name="content" placeholder="文章内容">
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Assumenda fugiat illo nihil molestias ab. Laborum eius non atque, totam sapiente quae obcaecati assumenda ratione inventore pariatur maiores, qui libero delectus.
-                            </textarea>
+                        </textarea>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">发布</button>
+                        <button type="submit" class="btn btn-success btn-release">发布</button>
                         <button type="submit" class="btn btn-default">存为草稿</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+    <!-- 创建文章类别下拉框 -->
+    <script type="text/html" id="art_rel">
+        {{each}}
+        <option value="{{$value.id}}">{{$value.name}}</option>
+        {{/each}}
+
+    </script>
+
+    <script>
+        //自调用函数
+        $(function () {
+
+            //图片预览功能
+            $('#exampleInputFile').change(function () {
+                var iconfiles = this.files[0];
+                var url = URL.createObjectURL(iconfiles);
+                $(this).siblings('img').attr('src', url);
+            })
+
+            //发起ajax请求，获取所有文章类别并传入下拉框
+            $.ajax({
+                url: 'http://localhost:8000/admin/category_search',
+                success: function (res) {
+                    var html = template('art_rel', res.data);
+                    $('.art_rel').html(html);
+                }
+            })
+
+
+
+            //使用moment转换时间戳函数，moment插件内format获取当前时间
+            var nowdate = moment().format('YYYY-MM-DD');
+            //将转换好的时间放入文本框
+            $('#dateinput').val(nowdate);
+
+
+
+            //点击发布按钮提交信息
+            $('.btn-release').click(function () {
+                //创建formdata对象，记得在表单元素添加name属性
+                var formdata = new FormData($('form')[0]);
+                //
+                formdata.append('state', '草稿');
+                formdata.append('content', tinyMCE.activeEditor.getContent());
+                //发起ajax请求，请求方式是post，data传入formdata对象
+                $.post({
+                    url: 'http://localhost:8000/admin/article_publish',
+                    data: formdata,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.code == 201) {
+                            alert(res.msg);
+                        }
+                    }
+                })
+            })
+        })
+    </script>
 
 </body>
 
