@@ -70,7 +70,7 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
-                        <textarea class="form-control" id="rich_content" name="content" placeholder="文章内容">
+                        <textarea class="form-control" id="rich_content" placeholder="文章内容">
                         </textarea>
                     </div>
                 </div>
@@ -124,7 +124,6 @@
             $('.btn-release').click(function () {
                 //创建formdata对象，记得在表单元素添加name属性
                 var formdata = new FormData($('form')[0]);
-                //
                 formdata.append('state', '草稿');
                 formdata.append('content', tinyMCE.activeEditor.getContent());
                 //发起ajax请求，请求方式是post，data传入formdata对象

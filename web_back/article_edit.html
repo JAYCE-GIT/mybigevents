@@ -15,6 +15,7 @@
     <script src="js/jedate/js/jedate.js"></script>
     <script src="js/tinymce/js/tinymce/tinymce.min.js"></script>
     <script src="js/tinymce/js/tinymce_setup.js"></script>
+    <script src="js/template-web.js"></script>
 </head>
 
 <body>
@@ -27,25 +28,21 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章标题：</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" value="文章标题文字">
+                        <input type="text" name="title" class="form-control title" value="">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
-                        <img src="images/pic06.jpg" class="article_cover">
-                        <input type="file" id="exampleInputFile">
+                        <img src="#" title="图片" class="article_cover">
+                        <input type="file" name="cover" id="exampleInputFile">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
-                            <option>类别一</option>
-                            <option>类别二</option>
-                            <option>类别三</option>
-                            <option selected>类别四</option>
-                            <option>类别五</option>
+                        <select name="type" class="form-control art_rel">
+                            <option></option>
                         </select>
                     </div>
                 </div>
@@ -54,29 +51,108 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" value="2019-05-17" id="dateinput">
-                            <span class="input-group-btn">
+                            <input type="text" name="date" class="form-control" value="" id="dateinput" disabled>
+                            <!-- <span class="input-group-btn">
                                 <button class="btn btn-default" type="button"
-                                    onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
+                                    onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})" disabled><i
                                         class="iconfont icon-icondate"></i></button>
-                            </span>
+                            </span> -->
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="rich_content" name="content" placeholder="文章内容" value="文章内容">
+                        <input type="text" class="form-control" id="rich_content" placeholder="文章内容" value="文章内容">
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">修改</button>
+                        <button type="submit" class="btn btn-success btn-edit">修改</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- 创建文章类别下拉框 -->
+    <script type="text/html" id="art_rel">
+            {{each}}
+            <option value="{{$value.id}}">{{$value.name}}</option>
+            {{/each}}
+    
+        </script>
+
+
+    <script>
+        //自调用函数
+        $(function () {
+
+            // 图片预览功能
+            $('#exampleInputFile').change(function () {
+                var iconfiles = this.files[0];
+                var url = URL.createObjectURL(iconfiles);
+                $(this).siblings('img').attr('src', url);
+            })
+
+
+
+            //发起ajax请求，获取所有文章类别并传入下拉框
+            $.ajax({
+                url: 'http://localhost:8000/admin/category_search',
+                success: function (res) {
+                    if (res.code == 200) {
+                        var html = template('art_rel', res.data);
+                        $('.art_rel').html(html);
+                    }
+                }
+            })
+
+
+
+
+
+            //获取url的问号后面的内容,只取=号后面的数值
+            var id = window.location.search.split('=')[1];
+            $.ajax({
+                url: 'http://localhost:8000/admin/search',
+                data: { id: id },
+                success: function (res) {
+                    console.log(res);
+                    $('.title').val(res.data.title);
+                    $('.article_cover').attr('src', res.data.cover);
+                    $('.art_rel').val(res.data.type);
+                    $('#dateinput').val(res.data.date);
+                    $('#rich_content').val(res.data.content)
+
+                }
+            })
+
+
+
+
+            //点击发布按钮提交信息
+            $('.btn-edit').click(function (e) {
+                e.preventDefault();
+                var formData1 = new FormData($('form')[0]);
+                formData1.append('id', id);
+                formData1.append('content', tinyMCE.activeEditor.getContent());
+
+                $.ajax({
+                    type: 'post',
+                    url: 'http://localhost:8000/admin/article_edit',
+                    data: formData1,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.code == 200) {
+                            location.href='./article_list.html';
+                        }
+                    },
+                })
+            })
+        })
+    </script>
 
 </body>
 

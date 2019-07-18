@@ -110,7 +110,7 @@
                 <td class="text-center">{{$value.date}}</td>
                 <td class="text-center">{{$value.state}}</td>
                 <td class="text-center">
-                    <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+                    <a href="article_edit.html?id={{$value.id}}" class="btn btn-default btn-xs">编辑</a>
                     <a href="javascript:void(0)" data-id="{{$value.id}}" class="btn btn-danger btn-xs">删除</a>
                 </td>
             </tr>
@@ -157,6 +157,7 @@
                         type: type,
                         state: state,
                         page: mypage,
+                        perpage: 5
                     },
                     success: function (res) {
                         // console.log(res);
@@ -198,8 +199,11 @@
                 //阻止默认事件
                 e.preventDefault();
                 //调用getData函数，将两个下拉框内容对应的文章列表显示
+                //触发分页条码的首页按钮的点击事件.
+                // $('.page-link').trigger('click');
 
                 getData($('.pagination').twbsPagination('getCurrentPage'));
+                
             })
 
 
